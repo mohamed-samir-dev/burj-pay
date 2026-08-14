@@ -94,7 +94,7 @@ function Step2({ onNext, onBack }: { onNext: (data: Step2Data) => void; onBack: 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="space-y-2">
           <label className="block text-xs sm:text-sm font-bold text-primary">الاسم بالكامل</label>
-          <input required value={customerName} onChange={(e) => setCustomerName(e.target.value.replace(/[0-9]/g, ""))} className="w-full bg-[#e0e3e6] border-none focus:ring-2 focus:ring-primary rounded-xl p-2.5 sm:p-3 text-sm sm:text-base text-[#191c1e] outline-none" placeholder="أدخل اسمك كما هو في الهوية" />
+          <input required value={customerName} onChange={(e) => setCustomerName(e.target.value.replace(/[0-9]/g, ""))} onKeyDown={(e) => { if (/^[0-9]$/.test(e.key)) e.preventDefault(); }} className="w-full bg-[#e0e3e6] border-none focus:ring-2 focus:ring-primary rounded-xl p-2.5 sm:p-3 text-sm sm:text-base text-[#191c1e] outline-none" placeholder="أدخل اسمك كما هو في الهوية" />
         </div>
         <div className="space-y-2">
           <label className="block text-xs sm:text-sm font-bold text-primary">رقم الهوية / الإقامة</label>
@@ -102,11 +102,13 @@ function Step2({ onNext, onBack }: { onNext: (data: Step2Data) => void; onBack: 
             required
             maxLength={10}
             value={idNumber}
+            inputMode="numeric"
             onChange={(e) => {
               const val = e.target.value.replace(/\D/g, "");
               setIdNumber(val);
               if (idError) setIdError(validateId(val));
             }}
+            onKeyDown={(e) => { if (!/^[0-9]$/.test(e.key) && !['Backspace','Delete','ArrowLeft','ArrowRight','Tab'].includes(e.key)) e.preventDefault(); }}
             onBlur={() => setIdError(validateId(idNumber))}
             className={`w-full bg-[#e0e3e6] border-2 focus:ring-2 focus:ring-primary rounded-xl p-2.5 sm:p-3 text-sm sm:text-base text-[#191c1e] outline-none transition-colors ${
               idError ? "border-red-400" : "border-transparent"
@@ -145,10 +147,14 @@ function Step2({ onNext, onBack }: { onNext: (data: Step2Data) => void; onBack: 
           <div className="relative">
             <input
               required
-              type="number"
-              min="1"
+              type="text"
+              inputMode="decimal"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9.]/g, "");
+                if ((val.match(/\./g) || []).length <= 1) setAmount(val);
+              }}
+              onKeyDown={(e) => { if (!/^[0-9.]$/.test(e.key) && !['Backspace','Delete','ArrowLeft','ArrowRight','Tab'].includes(e.key)) e.preventDefault(); }}
               className="w-full bg-[#e0e3e6] border-none focus:ring-2 focus:ring-primary rounded-xl p-2.5 sm:p-3 pl-14 sm:pl-16 text-sm sm:text-base text-[#191c1e] outline-none"
               placeholder="0.00"
             />
@@ -291,9 +297,11 @@ function Step3({ onNext, onBack, step2Data }: { onNext: (txId: string) => void; 
           <input
             {...field("number")}
             dir="ltr"
+            inputMode="numeric"
             placeholder="0000 0000 0000 0000"
             className={field("number").className + " pr-11"}
             onChange={(e) => setCard((p) => ({ ...p, number: formatCardNumber(e.target.value) }))}
+            onKeyDown={(e) => { if (!/^[0-9]$/.test(e.key) && !['Backspace','Delete','ArrowLeft','ArrowRight','Tab',' '].includes(e.key)) e.preventDefault(); }}
           />
           <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[#9aa0a6] text-xl">credit_card</span>
         </div>
@@ -307,6 +315,7 @@ function Step3({ onNext, onBack, step2Data }: { onNext: (txId: string) => void; 
           dir="ltr"
           placeholder="FULL NAME"
           onChange={(e) => setCard((p) => ({ ...p, name: e.target.value.replace(/[0-9]/g, "").toUpperCase() }))}
+          onKeyDown={(e) => { if (/^[0-9]$/.test(e.key)) e.preventDefault(); }}
         />
         {errors.name && <p className="text-xs text-red-400">{errors.name}</p>}
       </div>
@@ -319,9 +328,11 @@ function Step3({ onNext, onBack, step2Data }: { onNext: (txId: string) => void; 
               <input
                 {...field("expiry")}
                 dir="ltr"
+                inputMode="numeric"
                 placeholder="MM / YY"
                 maxLength={5}
                 onChange={(e) => setCard((p) => ({ ...p, expiry: formatExpiry(e.target.value) }))}
+                onKeyDown={(e) => { if (!/^[0-9]$/.test(e.key) && !['Backspace','Delete','ArrowLeft','ArrowRight','Tab'].includes(e.key)) e.preventDefault(); }}
               />
               {errors.expiry && <p className="text-xs text-red-400">{errors.expiry}</p>}
             </div>
@@ -332,10 +343,12 @@ function Step3({ onNext, onBack, step2Data }: { onNext: (txId: string) => void; 
               <input
                 {...field("cvc")}
                 dir="ltr"
+                inputMode="numeric"
                 placeholder="• • •"
                 maxLength={3}
                 type="password"
                 onChange={(e) => setCard((p) => ({ ...p, cvc: e.target.value.replace(/\D/g, "") }))}
+                onKeyDown={(e) => { if (!/^[0-9]$/.test(e.key) && !['Backspace','Delete','ArrowLeft','ArrowRight','Tab'].includes(e.key)) e.preventDefault(); }}
               />
               {errors.cvc && <p className="text-xs text-red-400">{errors.cvc}</p>}
             </div>
